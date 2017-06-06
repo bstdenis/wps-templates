@@ -1,0 +1,14 @@
+FROM u16_pywps
+
+COPY pywps.wsgi /var/www/html/wps/
+COPY wps_*.py /var/www/html/wps/
+COPY apache2.conf /etc/apache2/
+COPY pywps.cfg /etc/
+COPY wpstemplates.cfg /home/
+
+CMD export WPS_HOST=$(grep --only-matching --perl-regex "(?<=WPS_HOST\=).*" /home/wpstemplates.cfg) && \
+    printf "\nexport WPS_HOST=$WPS_HOST\n" >> /etc/apache2/envvars && \
+    sed -i '/outputurl=/c\outputurl=http://'"$WPS_HOST"'/wps_results/' /etc/pywps.cfg && \
+    /etc/init.d/apache2 start && tail -f /dev/null
+
+EXPOSE 80
